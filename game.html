@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Game Jaringan WAN</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;min-height:100vh;padding:20px;
+ display:flex;align-items:center;justify-content:center;
+ font-family:Arial,sans-serif;
+ background:linear-gradient(135deg,#07152e,#1d4ed8,#38bdf8);
+}
+.container{
+ background:white;width:100%;max-width:520px;
+ padding:30px;border-radius:20px;
+ box-shadow:0 15px 40px #0004;
+}
+h1{text-align:center;color:#1d4ed8;font-size:25px}
+.subtitle{text-align:center;color:#64748b}
+label{display:block;margin-top:16px;font-weight:bold;color:#1e293b}
+input{
+ width:100%;padding:13px;margin-top:7px;
+ border:1px solid #cbd5e1;border-radius:9px;font-size:16px
+}
+button{
+ border:none;padding:13px;border-radius:9px;
+ background:#2563eb;color:white;font-size:15px;
+ font-weight:bold;cursor:pointer;margin-top:14px
+}
+button:hover{background:#1d4ed8}
+.full{width:100%}
+.hidden{display:none}
+.error{color:#dc2626;font-size:14px}
+.info{background:#eff6ff;color:#1e40af;padding:12px;
+ border-radius:9px;font-size:14px;margin-top:15px}
+.header{display:flex;justify-content:space-between;
+ gap:10px;font-size:14px;color:#475569}
+.progress{height:8px;background:#dbeafe;border-radius:8px;
+ margin-top:15px;overflow:hidden}
+.bar{height:100%;background:#2563eb;width:0}
+#question{font-size:19px;font-weight:bold;line-height:1.5;
+ margin:22px 0}
+.answer{
+ display:block;width:100%;text-align:left;
+ background:#f1f5f9;color:#1e293b;
+ border:1px solid #cbd5e1;margin:9px 0
+}
+.answer:hover{background:#dbeafe}
+.answer:disabled{opacity:1;cursor:default}
+.good{background:#dcfce7!important;border-color:#16a34a}
+.bad{background:#fee2e2!important;border-color:#dc2626}
+.feedback{background:#eff6ff;padding:12px;
+ border-radius:9px;line-height:1.5;margin-top:12px}
+.footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- FORM 1: LOGIN -->
+<section id="formLogin">
+ <h1>🌐 GAME JARINGAN WAN</h1>
+ <p class="subtitle">WAN Network Challenge | SMK TKJ</p>
+
+ <form id="loginForm">
+  <label for="nama">Nama Pengguna</label>
+  <input id="nama" type="text" placeholder="Masukkan nama Anda"
+   autocomplete="username" required>
+
+  <label for="password">Password</label>
+  <input id="password" type="password" placeholder="Masukkan password"
+   autocomplete="current-password" required>
+
+  <button class="full" type="submit">🔐 LOGIN</button>
+ </form>
+
+ <p id="pesanLogin" class="error" role="alert"></p>
+
+ <div class="info">
+  <b>Akun untuk mencoba:</b><br>
+  Nama pengguna: siswa<br>
+  Password: wan123
+ </div>
+ <p class="footer">Media pembelajaran jaringan komputer</p>
+</section>
+
+<!-- FORM 2: GAME -->
+<section id="formGame" class="hidden">
+ <h1>🎮 KUIS JARINGAN WAN</h1>
+ <p class="subtitle">Selamat bermain, <b id="namaPemain"></b>!</p>
+
+ <div id="areaKuis">
+  <div class="header">
+   <span id="nomorSoal">Soal 1/8</span>
+   <span>⭐ Skor: <b id="skor">0</b></span>
+  </div>
+  <div class="progress"><div id="bar" class="bar"></div></div>
+  <div id="question"></div>
+  <div id="pilihan"></div>
+  <div id="feedback" class="feedback hidden" role="status"></div>
+  <button id="lanjut" class="full hidden">SOAL BERIKUTNYA ➜</button>
+ </div>
+
+ <div id="hasil" class="hidden">
+  <h1>🏆 HASIL PERMAINAN</h1>
+  <p id="nilaiAkhir" class="subtitle"></p>
+  <div id="pesanHasil" class="info"></div>
+  <button id="mainLagi" class="full">🔄 MAIN LAGI</button>
+ </div>
+
+ <button id="logout" class="full" style="background:#64748b">
+  LOGOUT / KELUAR
+ </button>
+</section>
+
+</div>
+
+<script>
+const akunNama = "siswa";
+const akunPassword = "wan123";
+
+const dataSoal = [
+ {t:"Apa kepanjangan WAN?",
+  p:["Wide Area Network","Wireless Access Node",
+     "Web Area Network","Wide Automatic Network"],
+  j:0,e:"WAN adalah Wide Area Network, yaitu jaringan dengan cakupan geografis luas."},
+ {t:"Apa fungsi utama WAN?",
+  p:["Menghubungkan jaringan di lokasi berjauhan",
+     "Mencetak dokumen","Mengedit foto","Mengisi baterai"],
+  j:0,e:"WAN menghubungkan jaringan yang berada di wilayah berbeda."},
+ {t:"Perangkat yang meneruskan paket antarjaringan adalah ...",
+  p:["Keyboard","Router","Monitor","Printer"],
+  j:1,e:"Router meneruskan paket data berdasarkan informasi alamat IP dan tabel routing."},
+ {t:"Contoh jaringan WAN adalah ...",
+  p:["Jaringan antarkantor di kota berbeda",
+     "Dua perangkat dengan kabel USB",
+     "Keyboard dan komputer","Satu komputer tanpa jaringan"],
+  j:0,e:"WAN dapat menghubungkan kantor pusat dengan kantor cabang di lokasi berbeda."},
+ {t:"Jaringan dengan cakupan wilayah luas disebut ...",
+  p:["PAN","LAN","WAN","USB"],
+  j:2,e:"WAN memiliki cakupan lebih luas dibandingkan jaringan LAN pada umumnya."},
+ {t:"Apa fungsi alamat IP?",
+  p:["Mengidentifikasi perangkat di jaringan",
+     "Mencerahkan monitor","Mengatur volume speaker",
+     "Mengganti kabel jaringan"],
+  j:0,e:"Alamat IP digunakan untuk mengidentifikasi antarmuka jaringan secara logis."},
+ {t:"Media yang dapat digunakan untuk koneksi WAN adalah ...",
+  p:["Serat optik","Radio","Jaringan seluler","Semua benar"],
+  j:3,e:"WAN dapat menggunakan serat optik, radio, jaringan seluler, dan media lainnya."},
+ {t:"Apa yang diperiksa jika koneksi WAN terputus?",
+  p:["Wallpaper","Kabel/link, IP, routing dan perangkat",
+     "Warna casing","Jenis keyboard"],
+  j:1,e:"Periksa koneksi fisik, status link, alamat IP, routing, dan perangkat jaringan."}
+];
+
+let pemain="", indeks=0, nilai=0, sudahJawab=false;
+
+const el=id=>document.getElementById(id);
+
+el("loginForm").addEventListener("submit",function(event){
+ event.preventDefault();
+ const nama=el("nama").value.trim();
+ const password=el("password").value;
+
+ if(nama.toLowerCase()!==akunNama ||
+    password!==akunPassword){
+   el("pesanLogin").textContent=
+    "Login gagal! Nama pengguna atau password salah.";
+   return;
+ }
+
+ pemain=nama;
+ el("pesanLogin").textContent="";
+ el("namaPemain").textContent=pemain;
+ el("formLogin").classList.add("hidden");
+ el("formGame").classList.remove("hidden");
+ mulaiGame();
+});
+
+function mulaiGame(){
+ indeks=0;
+ nilai=0;
+ el("skor").textContent=nilai;
+ el("areaKuis").classList.remove("hidden");
+ el("hasil").classList.add("hidden");
+ tampilSoal();
+}
+
+function tampilSoal(){
+ sudahJawab=false;
+ const s=dataSoal[indeks];
+ el("nomorSoal").textContent=
+  "Soal "+(indeks+1)+" dari "+dataSoal.length;
+ el("bar").style.width=
+  (indeks/dataSoal.length*100)+"%";
+ el("question").textContent=s.t;
+ el("pilihan").innerHTML="";
+ el("feedback").classList.add("hidden");
+ el("lanjut").classList.add("hidden");
+
+ s.p.forEach((teks,i)=>{
+  const tombol=document.createElement("button");
+  tombol.className="answer";
+  tombol.textContent=String.fromCharCode(65+i)+". "+teks;
+  tombol.onclick=()=>jawab(i);
+  el("pilihan").appendChild(tombol);
+ });
+}
+
+function jawab(pilihan){
+ if(sudahJawab)return;
+ sudahJawab=true;
+ const s=dataSoal[indeks];
+ const tombol=el("pilihan").querySelectorAll("button");
+
+ tombol.forEach((b,i)=>{
+  b.disabled=true;
+  if(i===s.j)b.classList.add("good");
+  if(i===pilihan && pilihan!==s.j)b.classList.add("bad");
+ });
+
+ if(pilihan===s.j)nilai+=10;
+ el("skor").textContent=nilai;
+ el("feedback").textContent=
+  (pilihan===s.j?"✅ Jawaban benar! ":"❌ Jawaban belum tepat. ")+s.e;
+ el("feedback").classList.remove("hidden");
+ el("lanjut").textContent=
+  indeks===dataSoal.length-1?"LIHAT HASIL 🏆":"SOAL BERIKUTNYA ➜";
+ el("lanjut").classList.remove("hidden");
+}
+
+el("lanjut").onclick=function(){
+ if(!sudahJawab)return;
+ indeks++;
+ if(indeks<dataSoal.length){
+  tampilSoal();
+ }else{
+  el("areaKuis").classList.add("hidden");
+  el("hasil").classList.remove("hidden");
+  el("bar").style.width="100%";
+  el("nilaiAkhir").textContent=
+   pemain+", nilai kamu "+nilai+" dari 80.";
+  el("pesanHasil").textContent=
+   nilai>=70?"Hebat! Kamu memahami materi WAN dengan baik.":
+   "Tetap semangat! Pelajari materi WAN dan coba lagi.";
+ }
+};
+
+el("mainLagi").onclick=mulaiGame;
+
+el("logout").onclick=function(){
+ el("formGame").classList.add("hidden");
+ el("formLogin").classList.remove("hidden");
+ el("nama").value="";
+ el("password").value="";
+ el("pesanLogin").textContent="";
+};
+
+</script>
+</body>
+</html>
